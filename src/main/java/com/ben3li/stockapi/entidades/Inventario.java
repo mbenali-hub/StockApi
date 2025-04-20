@@ -16,12 +16,18 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "Inventarios",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"tipo","ubicacion_id"})
+    }
+)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,16 +46,19 @@ public class Inventario {
     @Column(nullable = false)
     private Tipo tipo;
 
+    private LocalDateTime fechaDeCreacion;
+
     @ManyToOne
     @JoinColumn(name = "creador_id",nullable = false)
     private Usuario creador;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "ubicacion_id",nullable = false)
     private Ubicacion ubicacion;
 
-    @ManyToMany(mappedBy = "inventarios")
-    private List<Producto> productos;
-    private LocalDateTime fechaDeCreacion;
+    @OneToMany(mappedBy = "inventario")
+    private List<ProductoInventario> productoInventarios;
+
+    @Column(nullable = false)
     private boolean activo;
 }

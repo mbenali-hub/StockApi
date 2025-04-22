@@ -14,12 +14,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"usuarioUbicacion"})
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,6 +32,9 @@ public class Usuario {
 
     @Column(nullable = false)
     private String nombre;
+
+    @Column(nullable = false)
+    private String password;
 
     @OneToMany(mappedBy = "usuario")
     private List<UsuarioUbicacion> usuarioUbicacion;

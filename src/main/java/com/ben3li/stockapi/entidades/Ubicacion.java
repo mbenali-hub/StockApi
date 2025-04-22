@@ -13,12 +13,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"usuarioubicacion"})
 public class Ubicacion {
 
     @Id
@@ -32,5 +34,5 @@ public class Ubicacion {
     private List<Inventario> inventarios;
 
     @OneToMany(mappedBy = "ubicacion")
-    private List<UsuarioUbicacion> usuarioUbicacions;
+    private List<UsuarioUbicacion> usuarioUbicacion;
 }

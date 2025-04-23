@@ -37,12 +37,10 @@ public class UbicicacionServiceImpl implements UbicacionService{
         }
 
         Usuario usuario=usuarioRepositorio.findById(userId).orElseThrow();
-
         Ubicacion ubicacion=ubicacionMapper.fromDto(ubicacionDTO);
         ubicacion.setId(null);
-        Ubicacion ubicacionGuardada=ubicacionRepositorio.save(ubicacion);
-        System.out.println("Ubicacion: " + ubicacionGuardada+"????"+"Usuario: "+usuario);
 
+        Ubicacion ubicacionGuardada=ubicacionRepositorio.save(ubicacion);
 
 
         UsuarioUbicacionId id= new UsuarioUbicacionId(usuario.getId(),ubicacionGuardada.getId());
@@ -55,17 +53,47 @@ public class UbicicacionServiceImpl implements UbicacionService{
                                                             
         usuarioUbicacionRepositorio.save(usuarioUbicacion);
 
-        List<UsuarioUbicacion>usuarioUbicaciones=ubicacionGuardada.getUsuarioUbicacion();
-        if(usuarioUbicaciones!=null)
-            {usuarioUbicaciones.add(usuarioUbicacion);
-        }else{
-            usuarioUbicaciones=new ArrayList<>();
-            usuarioUbicaciones.add(usuarioUbicacion);
-            ubicacionGuardada.setUsuarioUbicacion(usuarioUbicaciones);
-        }
+        Ubicacion ubicacionActualizada = agregarUsuarioUbicacion(ubicacionGuardada, usuarioUbicacion);
 
-        ubicacionRepositorio.save(ubicacionGuardada);
-        return ubicacionGuardada;
+
+        return ubicacionActualizada;
     }
 
+    public Ubicacion agregarUsuarioUbicacion(Ubicacion ubicacion, UsuarioUbicacion usuarioUbicacion) {
+        List<UsuarioUbicacion> usuarioUbicaciones = ubicacion.getUsuarioUbicacion();
+    
+        if (usuarioUbicaciones == null) {
+            usuarioUbicaciones = new ArrayList<>();
+            ubicacion.setUsuarioUbicacion(usuarioUbicaciones);
+        }
+    
+        usuarioUbicaciones.add(usuarioUbicacion);
+        return ubicacionRepositorio.save(ubicacion);
+    }
+
+    @Override
+    public UbicacionDTO anhadirUsuarioAUbicacion(UUID ubicacionId, UUID usuarioId, Rol rol) {
+        Ubicacion ubicacionActualizada=null;
+        Ubicacion ubicacion= ubicacionRepositorio.findById(ubicacionId)
+                                                .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La ubicacion no existe" ));
+        Usuario usuario= usuarioRepositorio.findById(usuarioId)
+                                            .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La usuario no existe" ));
+        
+        if(ubicacion!=null && usuario!=null){
+            UsuarioUbicacionId id= new UsuarioUbicacionId(usuarioId, ubicacionId);
+            UsuarioUbicacion usuarioUbicacion= usuarioUbicacionRepositorio.save( UsuarioUbicacion.builder()
+                                                                                                .id(id)
+                                                                                                .usuario(usuario)
+                                                                                                .ubicacion(ubicacion)
+                                                                                                .rol(rol)
+                                                                                                .build()
+            );
+            
+           ubicacionActualizada = agregarUsuarioUbicacion(ubicacion, usuarioUbicacion);
+        }
+
+        return ubicacionMapper.toDto(ubicacionActualizada);
+    }
+    
+    
 }

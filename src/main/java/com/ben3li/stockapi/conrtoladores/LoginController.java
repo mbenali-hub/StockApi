@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ben3li.stockapi.dto.LoginRequest;
+import com.ben3li.stockapi.dto.LoginRegistroRequest;
 import com.ben3li.stockapi.dto.LoginResponse;
 import com.ben3li.stockapi.dto.UsuarioDTO;
 import com.ben3li.stockapi.entidades.Usuario;
@@ -30,7 +30,7 @@ public class LoginController {
     private final UsuarioMapper usuarioMapper;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRegistroRequest loginRequest){
         UserDetails userdetails=authenticationServiceImpl.autenticar(loginRequest.getEmail(), loginRequest.getPassword());
 
         String token= authenticationServiceImpl.generarToken(userdetails);
@@ -43,13 +43,8 @@ public class LoginController {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<UsuarioDTO> registro(@RequestBody UsuarioDTO usuarioDTO){
-        Usuario usuario=  usuarioServiceImpl.guardarUsuario(usuarioMapper.fromDTO(usuarioDTO));
-        UsuarioDTO usuarioCreadoDTO= UsuarioDTO.builder()
-                                                .id(usuario.getId())
-                                                .nombre(usuario.getNombre())
-                                                .email(usuario.getEmail())
-                                                .build();
+    public ResponseEntity<UsuarioDTO> registro(@RequestBody LoginRegistroRequest loginRegistroRequest){
+        UsuarioDTO usuarioCreadoDTO= usuarioServiceImpl.guardarUsuario(loginRegistroRequest);
         return new ResponseEntity<>(usuarioCreadoDTO,HttpStatus.CREATED);
     }
 }

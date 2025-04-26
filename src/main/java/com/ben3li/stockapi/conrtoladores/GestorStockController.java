@@ -1,7 +1,15 @@
 package com.ben3li.stockapi.conrtoladores;
 
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,7 +21,7 @@ import com.ben3li.stockapi.dto.UbicacionDTO;
 import com.ben3li.stockapi.entidades.Ubicacion;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion.Rol;
 import com.ben3li.stockapi.mappers.UbicacionMapper;
-import com.ben3li.stockapi.servicios.impl.UbicicacionServiceImpl;
+import com.ben3li.stockapi.servicios.impl.UbicacionServiceImpl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,17 +30,50 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/stockapi")
 @RequiredArgsConstructor
 public class GestorStockController {
-    private final UbicicacionServiceImpl ubicicacionServiceImpl;
+    private final UbicacionServiceImpl ubicicacionServiceImpl;
     private final UbicacionMapper ubicacionMapper;
 
-    @PostMapping("/crearubicacion")
-    public UbicacionDTO crearUbicacion(@RequestBody UbicacionDTO ubicacionDTO,HttpServletRequest request){
-        Ubicacion ubicacion = ubicicacionServiceImpl.crearUbicacion(ubicacionDTO,(UUID)request.getAttribute("userId"));
-        return ubicacionMapper.toDto(ubicacion);        
+    @PostMapping("/ubicaciones")
+    public UbicacionDTO crearUbicacion(@RequestBody UbicacionDTO ubicacionDTO, HttpServletRequest request) {
+        Ubicacion ubicacion = ubicicacionServiceImpl.crearUbicacion(ubicacionDTO, (UUID) request.getAttribute("userId"));
+        return ubicacionMapper.toDto(ubicacion);
+    }
+    
+    @GetMapping("/ubicaciones")
+    public ResponseEntity<List<UbicacionDTO>> listarUbicaciones(
+        HttpServletRequest request
+    ){
+    //    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones((UUID)request.getAttribute("userId"));
+    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones(UUID.fromString("348b7171-e6b6-4525-a893-a8f838613165"));
+       return ResponseEntity.ok(ubicaciones);
     }
 
-    @PutMapping("/insertarUsuario")
-    public UbicacionDTO insertarUsuario(@RequestParam UUID ubicacionId,@RequestParam UUID usuarioId, Rol rol){
+    @PutMapping("/ubicaciones/{ubicacionId}/usuarios/{usuarioId}/rol/{rol}")
+    public UbicacionDTO insertarUsuario(
+        @PathVariable UUID ubicacionId,
+        @PathVariable UUID usuarioId,
+        @PathVariable Rol rol
+    ) {
         return ubicicacionServiceImpl.anhadirUsuarioAUbicacion(ubicacionId, usuarioId, rol);
     }
+
+    @PutMapping("/ubicaciones/{ubicacionId}/usuarios/{usuarioId}")
+    public UbicacionDTO quitarUsuario(
+        @PathVariable UUID ubicacionId,
+        @PathVariable UUID usuarioId
+    ) {
+        return ubicicacionServiceImpl.quitarUsuarioDeUbicacion(ubicacionId, usuarioId);
+    }
+
+    @DeleteMapping("/ubicaciones/{ubicacionId}")
+    public ResponseEntity<Void> eliminarUbicacion(@PathVariable UUID ubicacionId, HttpServletRequest request) {
+        // boolean eliminado = ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, (UUID) request.getAttribute("userId"));
+        boolean eliminado = ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        if (eliminado) {
+            return ResponseEntity.noContent().build(); 
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
 }

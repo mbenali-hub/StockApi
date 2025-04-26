@@ -29,10 +29,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception{
         http.authorizeHttpRequests(auth-> auth 
-            .requestMatchers(HttpMethod.POST, "/stockapi/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/stockapi/registro").permitAll()
-            .requestMatchers(HttpMethod.POST,"/stockapi/crearubicacion").permitAll()
-            .anyRequest().authenticated()
+            // .requestMatchers(HttpMethod.POST, "/stockapi/login").permitAll()
+            // .requestMatchers(HttpMethod.POST, "/stockapi/registro").permitAll()
+            // .requestMatchers(HttpMethod.POST,"/stockapi/crearubicacion").permitAll()
+            // .anyRequest().authenticated()
+            .anyRequest().permitAll()
         )
         .csrf(csrf->csrf.disable())
         .sessionManagement(session ->

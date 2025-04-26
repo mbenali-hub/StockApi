@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ben3li.stockapi.dto.UbicacionDTO;
@@ -24,8 +29,9 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class UbicicacionServiceImpl implements UbicacionService{
+public class UbicacionServiceImpl implements UbicacionService{
 
+    private UsuarioUbicacionId id;
     private final UbicacionRepositorio ubicacionRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
     private final UsuarioUbicacionRepositorio usuarioUbicacionRepositorio;
@@ -43,7 +49,7 @@ public class UbicicacionServiceImpl implements UbicacionService{
         Ubicacion ubicacionGuardada=ubicacionRepositorio.save(ubicacion);
 
 
-        UsuarioUbicacionId id= new UsuarioUbicacionId(usuario.getId(),ubicacionGuardada.getId());
+        id= new UsuarioUbicacionId(usuario.getId(),ubicacionGuardada.getId());
         UsuarioUbicacion usuarioUbicacion= UsuarioUbicacion.builder()
                                                             .id(id)
                                                             .usuario(usuario)
@@ -74,13 +80,11 @@ public class UbicicacionServiceImpl implements UbicacionService{
     @Override
     public UbicacionDTO anhadirUsuarioAUbicacion(UUID ubicacionId, UUID usuarioId, Rol rol) {
         Ubicacion ubicacionActualizada=null;
-        Ubicacion ubicacion= ubicacionRepositorio.findById(ubicacionId)
-                                                .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La ubicacion no existe" ));
-        Usuario usuario= usuarioRepositorio.findById(usuarioId)
-                                            .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La usuario no existe" ));
+        Ubicacion ubicacion= getUbicacion(ubicacionId);
+        Usuario usuario= getUsuario(usuarioId);
         
         if(ubicacion!=null && usuario!=null){
-            UsuarioUbicacionId id= new UsuarioUbicacionId(usuarioId, ubicacionId);
+            id= new UsuarioUbicacionId(usuarioId, ubicacionId);
             UsuarioUbicacion usuarioUbicacion= usuarioUbicacionRepositorio.save( UsuarioUbicacion.builder()
                                                                                                 .id(id)
                                                                                                 .usuario(usuario)
@@ -94,6 +98,70 @@ public class UbicicacionServiceImpl implements UbicacionService{
 
         return ubicacionMapper.toDto(ubicacionActualizada);
     }
+
     
+
+    
+    @Override
+    public UbicacionDTO quitarUsuarioDeUbicacion(UUID ubicacionId, UUID usuarioId) {
+        Ubicacion ubicacion= getUbicacion(ubicacionId);
+        UsuarioUbicacionId id= new UsuarioUbicacionId(usuarioId, ubicacionId);
+        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(id);
+        
+        ubicacion.getUsuarioUbicacion().remove(usuarioUbicacion);
+        usuarioUbicacionRepositorio.delete(usuarioUbicacion);
+        return ubicacionMapper.toDto(ubicacionRepositorio.save(ubicacion));
+    }
+    
+    
+    @Transactional
+    @Override
+    public boolean eliminarUbicacion(UUID ubicacionId, UUID usuarioId) {
+        boolean eliminado=false;
+        Ubicacion ubicacion=getUbicacion(ubicacionId);
+        
+        id=new UsuarioUbicacionId(usuarioId, ubicacionId);
+        
+        UsuarioUbicacion usuarioUbicacion= getUsuarioUbicacion(id);
+
+        if(usuarioUbicacion.getRol()==Rol.JEFE){
+            usuarioUbicacionRepositorio.delete(usuarioUbicacion);
+            ubicacionRepositorio.delete(ubicacion);
+            eliminado=true;
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return eliminado;
+    }
+    
+    private Usuario getUsuario(UUID usuarioId) {
+        return usuarioRepositorio.findById(usuarioId)
+                                    .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La usuario no existe" ));
+    }
+
+    private Ubicacion getUbicacion(UUID ubicacionId) {
+        return ubicacionRepositorio.findById(ubicacionId)
+                                    .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La ubicacion no existe" ));
+    }
+    
+    private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
+        return usuarioUbicacionRepositorio.findById(id)
+                                            .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"El usuario no existe en la ubicacion" ));
+    }
+
+    @Override
+    public List<UbicacionDTO> listarUbicaciones(UUID usuarioId) {
+
+        List<UsuarioUbicacion> usuarioUbicaciones = usuarioUbicacionRepositorio.findByUsuarioId(usuarioId);
+
+        List<Ubicacion> ubicaciones= new ArrayList<>();
+
+        for (UsuarioUbicacion usuarioUbicacion : usuarioUbicaciones) {
+            ubicaciones.add(usuarioUbicacion.getUbicacion());
+        }
+
+        return ubicaciones.stream().map(ubicacionMapper::toDto).toList();
+    }
     
 }

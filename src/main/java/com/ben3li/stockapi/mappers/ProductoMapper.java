@@ -9,4 +9,5 @@ import com.ben3li.stockapi.entidades.Producto;
 @Mapper(componentModel = "spring",unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface ProductoMapper {
     Producto fromDto(ProductoDTO productoDTO);
+    ProductoDTO toDto(Producto producto);
 }

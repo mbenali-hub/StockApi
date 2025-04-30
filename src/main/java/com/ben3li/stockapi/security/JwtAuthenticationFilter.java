@@ -22,22 +22,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException {
         
-        String token= extraerToken(request);
-        try {
-            if(token!=null){
-                UserDetails userDetails= authenticationServiceImpl.validarToken(token);
+        // String token= extraerToken(request);
+        // try {
+        //     if(token!=null){
+        //         UserDetails userDetails= authenticationServiceImpl.validarToken(token);
 
-                SecurityContextHolder.getContext().setAuthentication(
-                    new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities())
-                );
+        //         SecurityContextHolder.getContext().setAuthentication(
+        //             new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities())
+        //         );
 
-                if(userDetails instanceof StockApiUserDetails){
-                    request.setAttribute("userId", ((StockApiUserDetails)userDetails).getId());
-                }
-            }
-        } catch (Exception e) {            
-            e.printStackTrace();
-        }
+        //         if(userDetails instanceof StockApiUserDetails){
+        //             request.setAttribute("userId", ((StockApiUserDetails)userDetails).getId());
+        //         }
+        //     }
+        // } catch (Exception e) {            
+        //     System.out.println("Error: No hay token.");
+        // }
         
         doFilter(request, response, filterChain);
     }

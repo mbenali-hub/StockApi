@@ -25,6 +25,4 @@ public class ProductoDTO {
     private String unidad;
 
     private int cantidad;
-
-    private List<ProductoInventario> productoInventarios;
 }

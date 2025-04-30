@@ -11,8 +11,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import com.ben3li.stockapi.entidades.ProductoInventario;
-import com.ben3li.stockapi.entidades.Ubicacion;
-import com.ben3li.stockapi.entidades.Usuario;
 
 
 @Data
@@ -28,11 +26,11 @@ public class InventarioDTO {
 
     private LocalDateTime fechaDeCreacion;
 
-    private Usuario creador;
+    private UsuarioDTO creador;
 
-    private Ubicacion ubicacion;
+    private UbicacionDTO ubicacion;
 
-    private List<ProductoInventario> productoInventarios;
+    private List<ProductoInventarioDTO> productoInventarios;
 
     private boolean activo;
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,11 +24,13 @@ public class ProductoInventario {
     private ProductoInventarioId id;
 
     @ManyToOne
-    @JoinColumn(name="producto_id",nullable = false, updatable = false, insertable = false)
+    @MapsId("productoId")
+    @JoinColumn(name="producto_id",nullable = false)
     private Producto producto;
 
     @ManyToOne
-    @JoinColumn(name="inventario_id",nullable = false, updatable = false, insertable = false)
+    @MapsId("inventarioId")
+    @JoinColumn(name="inventario_id",nullable = false)
     private Inventario inventario;
 
     @Column(nullable = false)

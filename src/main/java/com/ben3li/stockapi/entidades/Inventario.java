@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -33,7 +34,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class Inventario {
-    public enum Tipo {FRUTA,PESCADO,VERDURA,FRUTOS_SECOS,CARNE,BOLLERIA,ROPA,CALZADO,ACCESORIOS};
+    public enum Tipo {FRUTA,PESCADO,VERDURA,FRUTOS_SECOS,CARNE,BOLLERIA,ROPA,CALZADO,ACCESORIOS,OTROS};
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -56,7 +57,7 @@ public class Inventario {
     @JoinColumn(name = "ubicacion_id",nullable = false)
     private Ubicacion ubicacion;
 
-    @OneToMany(mappedBy = "inventario")
+    @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL)
     private List<ProductoInventario> productoInventarios;
 
     @Column(nullable = false)

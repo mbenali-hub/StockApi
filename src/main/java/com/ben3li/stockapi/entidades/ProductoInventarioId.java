@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductoInventarioId implements Serializable{
-    private UUID producto;
-    private UUID inventario;
+    private UUID productoId;
+    private UUID inventarioId;
 }

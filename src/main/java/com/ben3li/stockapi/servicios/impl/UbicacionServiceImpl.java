@@ -18,6 +18,9 @@ import com.ben3li.stockapi.entidades.Ubicacion;
 import com.ben3li.stockapi.entidades.Usuario;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion;
 import com.ben3li.stockapi.entidades.UsuarioUbicacionId;
+import com.ben3li.stockapi.excepciones.AccesoDenegadoException;
+import com.ben3li.stockapi.excepciones.ConflictosDeDatosException;
+import com.ben3li.stockapi.excepciones.RecursoNoEncontradoException;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion.Rol;
 import com.ben3li.stockapi.mappers.UbicacionMapper;
 import com.ben3li.stockapi.repositorios.UbicacionRepositorio;
@@ -39,7 +42,7 @@ public class UbicacionServiceImpl implements UbicacionService{
     @Override
     public Ubicacion crearUbicacion(UbicacionDTO ubicacionDTO, UUID userId) {
         if(usuarioUbicacionRepositorio.existsByUsuarioIdAndUbicacionNombre(userId, ubicacionDTO.getNombre())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"Ya existe una ubicacion con ese nombre");
+            throw new ConflictosDeDatosException("Ya existe una ubicacion con ese nombre");
         }
 
         Usuario usuario=usuarioRepositorio.findById(userId).orElseThrow();
@@ -116,39 +119,19 @@ public class UbicacionServiceImpl implements UbicacionService{
     
     @Transactional
     @Override
-    public boolean eliminarUbicacion(UUID ubicacionId, UUID usuarioId) {
-        boolean eliminado=false;
+    public void eliminarUbicacion(UUID ubicacionId, UUID usuarioId) {
+
         Ubicacion ubicacion=getUbicacion(ubicacionId);
-        
-        id=new UsuarioUbicacionId(usuarioId, ubicacionId);
-        
-        UsuarioUbicacion usuarioUbicacion= getUsuarioUbicacion(id);
+        UsuarioUbicacion usuarioUbicacion= getUsuarioUbicacion(new UsuarioUbicacionId(usuarioId, ubicacionId));
 
-        if(usuarioUbicacion.getRol()==Rol.JEFE){
-            usuarioUbicacionRepositorio.delete(usuarioUbicacion);
-            ubicacionRepositorio.delete(ubicacion);
-            eliminado=true;
+        if(usuarioUbicacion.getRol()!=Rol.JEFE){
+            throw new AccesoDenegadoException("No tienes permisos para eliminar esta ubicacion");
         }
-        else{
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
-        }
-        return eliminado;
+
+        usuarioUbicacionRepositorio.delete(usuarioUbicacion);
+        ubicacionRepositorio.delete(ubicacion);
     }
     
-    private Usuario getUsuario(UUID usuarioId) {
-        return usuarioRepositorio.findById(usuarioId)
-                                    .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La usuario no existe" ));
-    }
-
-    private Ubicacion getUbicacion(UUID ubicacionId) {
-        return ubicacionRepositorio.findById(ubicacionId)
-                                    .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"La ubicacion no existe" ));
-    }
-    
-    private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
-        return usuarioUbicacionRepositorio.findById(id)
-                                            .orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"El usuario no existe en la ubicacion" ));
-    }
 
     @Override
     public List<UbicacionDTO> listarUbicaciones(UUID usuarioId) {
@@ -162,6 +145,21 @@ public class UbicacionServiceImpl implements UbicacionService{
         }
 
         return ubicaciones.stream().map(ubicacionMapper::toDto).toList();
+    }
+
+     private Usuario getUsuario(UUID usuarioId) {
+        return usuarioRepositorio.findById(usuarioId)
+                                    .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));
+    }
+
+    private Ubicacion getUbicacion(UUID ubicacionId) {
+        return ubicacionRepositorio.findById(ubicacionId)
+                                    .orElseThrow(()->new RecursoNoEncontradoException("La ubicacion no existe" ));
+    }
+
+    private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
+        return usuarioUbicacionRepositorio.findById(id)
+                                            .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe en la ubicacion" ));
     }
     
 }

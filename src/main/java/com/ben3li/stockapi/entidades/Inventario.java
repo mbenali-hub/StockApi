@@ -57,8 +57,11 @@ public class Inventario {
     @JoinColumn(name = "ubicacion_id",nullable = false)
     private Ubicacion ubicacion;
 
-    @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL)
-    private List<ProductoInventario> productoInventarios;
+    @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Producto> productos;
+
+    // @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL)
+    // private List<ProductoInventario> productoInventarios;
 
     @Column(nullable = false)
     private boolean activo;

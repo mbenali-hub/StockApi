@@ -30,7 +30,7 @@ public class InventarioDTO {
 
     private UbicacionDTO ubicacion;
 
-    private List<ProductoInventarioDTO> productoInventarios;
+    private List<ProductoDTO> productos;
 
     private boolean activo;
 }

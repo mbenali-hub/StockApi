@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ben3li.stockapi.dto.LoginRegistroRequest;
 import com.ben3li.stockapi.dto.UsuarioDTO;
 import com.ben3li.stockapi.entidades.Usuario;
+import com.ben3li.stockapi.excepciones.ConflictosDeDatosException;
 import com.ben3li.stockapi.mappers.UsuarioMapper;
 import com.ben3li.stockapi.repositorios.UsuarioRepositorio;
 import com.ben3li.stockapi.servicios.UsuarioService;
@@ -32,7 +33,7 @@ public class UsuarioServiceImpl implements UsuarioService{
     @Override
     public UsuarioDTO guardarUsuario(LoginRegistroRequest loginRegistroRequest) {
        if(usuarioRepositorio.existsByEmail(loginRegistroRequest.getEmail())){
-           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Ya existe un usuario con ese email");
+           throw new ConflictosDeDatosException("Ya existe un usuario con ese email");
        }
        loginRegistroRequest.setPassword(passwordEncoder.encode(loginRegistroRequest.getPassword()));
        Usuario usuarioGuardado=usuarioRepositorio.save(usuarioMapper.fromDTO(loginRegistroRequest));

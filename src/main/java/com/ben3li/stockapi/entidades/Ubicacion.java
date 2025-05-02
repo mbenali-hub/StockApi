@@ -20,7 +20,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = {"usuarioubicacion"})
+@ToString(exclude = {"usuarioubicacion","inventarios"})
 public class Ubicacion {
 
     @Id

@@ -7,8 +7,8 @@ import com.ben3li.stockapi.dto.InventarioDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
 
 public interface InventarioService {
-    InventarioDTO crearInventario(UUID ubicacionId, InventarioDTO inventarioDTO, List<ProductoDTO> productosIniciales,UUID userId);
+    InventarioDTO crearInventario(UUID ubicacionId, InventarioDTO inventarioDTO,UUID userId);
     InventarioDTO updateInventario(UUID inventarioId, InventarioDTO nuevoInventario);
-    InventarioDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productos);
-    InventarioDTO eliminarInventario(UUID inventarioId);
+    InventarioDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productos, UUID userId);
+    void eliminarInventario(UUID inventarioId, UUID userId);
 }

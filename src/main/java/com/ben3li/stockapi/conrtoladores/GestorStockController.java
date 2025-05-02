@@ -68,12 +68,8 @@ public class GestorStockController {
     @DeleteMapping("/ubicaciones/{ubicacionId}")
     public ResponseEntity<Void> eliminarUbicacion(@PathVariable UUID ubicacionId, HttpServletRequest request) {
         // boolean eliminado = ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, (UUID) request.getAttribute("userId"));
-        boolean eliminado = ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
-        if (eliminado) {
-            return ResponseEntity.noContent().build(); 
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        return ResponseEntity.noContent().build();
     }
 
 }

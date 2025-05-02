@@ -13,6 +13,6 @@ public interface UbicacionService {
     Ubicacion crearUbicacion(UbicacionDTO ubicacionDTO,UUID userId);
     UbicacionDTO anhadirUsuarioAUbicacion(UUID ubicacionId, UUID usuarioId, Rol rol);
     UbicacionDTO quitarUsuarioDeUbicacion(UUID ubicacionId, UUID usuarioId);
-    boolean eliminarUbicacion(UUID ubicacionId, UUID usuarioId);
+    void eliminarUbicacion(UUID ubicacionId, UUID usuarioId);
     List<UbicacionDTO> listarUbicaciones(UUID usuarioId);
 }

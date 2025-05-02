@@ -9,7 +9,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +27,9 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Table(name = "productos",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"nombre", "inventario_id"})
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -43,8 +49,15 @@ public class Producto {
     @Column(nullable = false)
     private String unidad;
 
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
-    private List<ProductoInventario> productoInventarios;
+    @Column(nullable = false)
+    private int cantidad;
+
+    @ManyToOne
+    @JoinColumn(name = "inventario_id")
+    private Inventario inventario;
+
+    // @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
+    // private List<ProductoInventario> productoInventarios;
     
 
 }

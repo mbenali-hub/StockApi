@@ -54,6 +54,16 @@ public class InventarioServiceImpl implements InventarioService{
     private Usuario usuarioActual;
     private UsuarioUbicacion usuarioUbicacion;
 
+
+    @Override
+    public InventarioDTO obtenerInventario(UUID iventarioId, UUID userId) {
+
+        Inventario inventario=getInventario(iventarioId);
+        verificarUsuarioEnUbicacion(userId, inventario.getUbicacion().getId());
+        return inventarioMapper.toDto(inventario);
+    }
+
+
     @Transactional
     @Override
     public InventarioDTO crearInventario(UUID ubicacionId, InventarioDTO inventarioDTO,UUID userId) {
@@ -80,9 +90,10 @@ public class InventarioServiceImpl implements InventarioService{
     }
 
 
+    @Transactional
     @Override
     public InventarioDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productosDTO,UUID userId) {
-        Inventario inventario = inventarioRepositorio.getReferenceById(inventarioId);
+        Inventario inventario = getInventario(inventarioId);
         usuarioActual=getUsuario(userId);
 
         usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
@@ -99,6 +110,8 @@ public class InventarioServiceImpl implements InventarioService{
         return inventarioMapper.toDto(inventario);
     }
 
+
+    
     @Override
     public InventarioDTO updateInventario(UUID inventarioId, InventarioDTO nuevoInventario) {
         // TODO Auto-generated method stub
@@ -106,20 +119,41 @@ public class InventarioServiceImpl implements InventarioService{
     }
     
     
+    @Transactional
     @Override
     public void eliminarInventario(UUID inventarioId,UUID userId) {
-        Inventario inventario= inventarioRepositorio.findById(inventarioId)
-                        .orElseThrow(()-> new RecursoNoEncontradoException("No se ha encontrado el inventario."));
-
+        Inventario inventario = getInventario(inventarioId);
+        
         usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
-
+        
         if(usuarioUbicacion.getRol()!=Rol.JEFE){
             throw new AccesoDenegadoException("No tiene permisos para eliminar un ninventario en esta ubicacion");
         }
-
+        
         inventarioRepositorio.deleteById(inventarioId);
     }
-
+    
+    @Transactional
+    @Override
+    public void eliminarProductosDelInventario(UUID inventarioId ,List<UUID> productosID, UUID userId) {
+        Inventario inventario = getInventario(inventarioId);
+        usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
+        
+        if(usuarioUbicacion.getRol()!=Rol.JEFE && usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
+            throw new AccesoDenegadoException("No tienes permisos para eliminar productos de este inventario en esta ubicacion.");
+        }
+        
+        for (UUID idProducto : productosID) {
+            Producto producto = productoRepositorio.findById(idProducto)
+            .orElseThrow(()->new RecursoNoEncontradoException("No se ha encontrado el producto con id: "+idProducto));
+            
+            producto.setInventario(null);
+            productoRepositorio.save(producto);
+        }
+        
+    }
+    
+    
     private List<Producto> crearListaDeProductoInventario(List<ProductoDTO> productosIniciales, Inventario inventarioGuardado)
     {
         List<Producto> productos= new ArrayList<>();
@@ -130,21 +164,33 @@ public class InventarioServiceImpl implements InventarioService{
         }
         return productos;
     }
-
-    
     
     private Usuario getUsuario(UUID usuarioId) {
         return usuarioRepositorio.findById(usuarioId)
-                                    .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));
+        .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));
     }
-
+    
     private Ubicacion getUbicacion(UUID ubicacionId) {
         return ubicacionRepositorio.findById(ubicacionId)
-                                    .orElseThrow(()->new RecursoNoEncontradoException("La ubicacion no existe" ));
+        .orElseThrow(()->new RecursoNoEncontradoException("La ubicacion no existe" ));
+    }
+    
+    private Inventario getInventario(UUID inventarioId) {
+        Inventario inventario = inventarioRepositorio.findById(inventarioId)
+                                         .orElseThrow(()-> new RecursoNoEncontradoException("No se ha encontrado el inventario."));
+        return inventario;
     }
 
     private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
         return usuarioUbicacionRepositorio.findById(id)
                                             .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe en la ubicacion" ));
     }
+
+
+    private void verificarUsuarioEnUbicacion(UUID userId, UUID ubicacionId) {
+        usuarioUbicacionRepositorio.findById(new UsuarioUbicacionId(userId, ubicacionId))
+                                    .orElseThrow(() -> new RecursoNoEncontradoException("El usuario no existe en la ubicación. Por lo que no puedes obtener acceso a sus inventarios."));
+    }
+    
+
 }

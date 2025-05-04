@@ -10,5 +10,7 @@ public interface InventarioService {
     InventarioDTO crearInventario(UUID ubicacionId, InventarioDTO inventarioDTO,UUID userId);
     InventarioDTO updateInventario(UUID inventarioId, InventarioDTO nuevoInventario);
     InventarioDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productos, UUID userId);
+    InventarioDTO obtenerInventario(UUID iventarioId, UUID userId);
+    void eliminarProductosDelInventario( UUID inventarioId,List<UUID> productosID, UUID userId);
     void eliminarInventario(UUID inventarioId, UUID userId);
 }

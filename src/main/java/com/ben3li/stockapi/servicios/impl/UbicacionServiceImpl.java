@@ -147,7 +147,7 @@ public class UbicacionServiceImpl implements UbicacionService{
         return ubicaciones.stream().map(ubicacionMapper::toDto).toList();
     }
 
-     private Usuario getUsuario(UUID usuarioId) {
+    private Usuario getUsuario(UUID usuarioId) {
         return usuarioRepositorio.findById(usuarioId)
                                     .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));
     }

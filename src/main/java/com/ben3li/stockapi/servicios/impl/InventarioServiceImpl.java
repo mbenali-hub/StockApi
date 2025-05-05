@@ -4,28 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.mapstruct.IterableMapping;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
 
 import com.ben3li.stockapi.dto.InventarioDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
-import com.ben3li.stockapi.dto.ProductoInventarioDTO;
 import com.ben3li.stockapi.entidades.Inventario;
 import com.ben3li.stockapi.entidades.Producto;
-import com.ben3li.stockapi.entidades.ProductoInventario;
-import com.ben3li.stockapi.entidades.ProductoInventarioId;
 import com.ben3li.stockapi.entidades.Ubicacion;
 import com.ben3li.stockapi.entidades.Usuario;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion;
 import com.ben3li.stockapi.entidades.UsuarioUbicacionId;
-import com.ben3li.stockapi.entidades.Inventario.Tipo;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion.Rol;
 import com.ben3li.stockapi.excepciones.AccesoDenegadoException;
 import com.ben3li.stockapi.excepciones.RecursoNoEncontradoException;
 import com.ben3li.stockapi.mappers.InventarioMapper;
-import com.ben3li.stockapi.mappers.ProductoInventarioMapper;
 import com.ben3li.stockapi.mappers.ProductoMapper;
 import com.ben3li.stockapi.repositorios.InventarioRepositorio;
 import com.ben3li.stockapi.repositorios.ProductoRepositorio;
@@ -57,7 +50,7 @@ public class InventarioServiceImpl implements InventarioService{
 
     @Override
     public InventarioDTO obtenerInventario(UUID iventarioId, UUID userId) {
-
+        
         Inventario inventario=getInventario(iventarioId);
         verificarUsuarioEnUbicacion(userId, inventario.getUbicacion().getId());
         return inventarioMapper.toDto(inventario);
@@ -98,14 +91,13 @@ public class InventarioServiceImpl implements InventarioService{
 
         usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
 
-        if(usuarioUbicacion.getRol()==Rol.JEFE || usuarioUbicacion.getRol()==Rol.ADMINISTRADOR){
-            List<Producto> productos=crearListaDeProductoInventario(productosDTO, inventario);
-            inventario.getProductos().addAll(productos);
-            inventario=inventarioRepositorio.save(inventario);
-        }
-        else{
+        if(usuarioUbicacion.getRol()!=Rol.JEFE && usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
             throw new AccesoDenegadoException("No tienes permisos para insertar productos.");
         }
+       
+        List<Producto> productos=crearListaDeProductoInventario(productosDTO, inventario);
+        inventario.getProductos().addAll(productos);
+        inventario=inventarioRepositorio.save(inventario);
 
         return inventarioMapper.toDto(inventario);
     }
@@ -127,7 +119,7 @@ public class InventarioServiceImpl implements InventarioService{
         usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
         
         if(usuarioUbicacion.getRol()!=Rol.JEFE){
-            throw new AccesoDenegadoException("No tiene permisos para eliminar un ninventario en esta ubicacion");
+            throw new AccesoDenegadoException("No tiene permisos para eliminar un inventario en esta ubicacion");
         }
         
         inventarioRepositorio.deleteById(inventarioId);
@@ -143,16 +135,18 @@ public class InventarioServiceImpl implements InventarioService{
             throw new AccesoDenegadoException("No tienes permisos para eliminar productos de este inventario en esta ubicacion.");
         }
         
-        for (UUID idProducto : productosID) {
-            Producto producto = productoRepositorio.findById(idProducto)
-            .orElseThrow(()->new RecursoNoEncontradoException("No se ha encontrado el producto con id: "+idProducto));
-            
-            producto.setInventario(null);
-            productoRepositorio.save(producto);
+        List<Producto> productosEncontrados = productoRepositorio.findByIdInAndInventarioId(productosID, inventarioId);
+
+        if(productosEncontrados.size()!=productosID.size()){
+            throw new RecursoNoEncontradoException("Uno o más productos no se han encontrado");
         }
-        
+
+        for (Producto producto : productosEncontrados) {
+            producto.setInventario(null);
+        }    
     }
-    
+
+
     
     private List<Producto> crearListaDeProductoInventario(List<ProductoDTO> productosIniciales, Inventario inventarioGuardado)
     {
@@ -165,6 +159,7 @@ public class InventarioServiceImpl implements InventarioService{
         return productos;
     }
     
+
     private Usuario getUsuario(UUID usuarioId) {
         return usuarioRepositorio.findById(usuarioId)
         .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));

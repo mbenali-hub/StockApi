@@ -1,9 +1,14 @@
 package com.ben3li.stockapi.servicios.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.ben3li.stockapi.dto.ProductoCantidadUpdateDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
@@ -40,10 +45,33 @@ public class ProductoServiceImpl implements ProductoService {
         return productos.stream().map(productoMapper::toDto).toList();
     }
 
+    @Transactional
     @Override
-    public List<ProductoDTO> updateCantidadProducto(List<ProductoCantidadUpdateDTO> productos) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateCantidadProducto'");
+    public List<ProductoDTO> updateCantidadProducto(UUID ubicacionId, List<ProductoCantidadUpdateDTO> productos, UUID userId) {
+        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
+
+        if(usuarioUbicacion.getRol()!=Rol.JEFE&& usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
+            throw new AccesoDenegadoException("Solo el jefe y los administradores pueden actualizar los productos.");
+        }
+        
+        List<UUID> ids = productos.stream().map(ProductoCantidadUpdateDTO::getProductoId).toList();
+        List<Producto> productosEncontrados = productoRepositorio.findAllById(ids);
+
+        if(productosEncontrados.size()!=ids.size()){
+            throw new RecursoNoEncontradoException("Uno o más productos no se han encuentrado.");
+        }
+
+        Map<UUID,Integer> nuevasCantidades = productos.stream().collect(Collectors.toMap(
+                                                                            ProductoCantidadUpdateDTO::getProductoId , 
+                                                                            ProductoCantidadUpdateDTO::getNuevaCantidad)
+        );
+
+        for (Producto producto : productosEncontrados) {
+            producto.setCantidad(nuevasCantidades.get(producto.getId()));
+        }
+
+        return productosEncontrados.stream().map(productoMapper::toDto).toList();
+
     }
 
     private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {

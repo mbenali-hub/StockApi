@@ -15,4 +15,6 @@ public interface ProductoRepositorio extends JpaRepository<Producto,UUID> {
 
     @Query("SELECT p from Producto p join p.inventario i join i.ubicacion u where u.id =:ubicacionId ")
     public List<Producto> obtenerProductosDeUbicacion(@Param("ubicacionId") UUID ubicacionId);
+
+    List<Producto> findByIdInAndInventarioId(List<UUID> ids, UUID inventarioId);
 }

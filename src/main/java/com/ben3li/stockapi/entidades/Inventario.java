@@ -9,6 +9,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -57,11 +58,8 @@ public class Inventario {
     @JoinColumn(name = "ubicacion_id",nullable = false)
     private Ubicacion ubicacion;
 
-    @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Producto> productos;
-
-    // @OneToMany(mappedBy = "inventario", cascade = CascadeType.ALL)
-    // private List<ProductoInventario> productoInventarios;
+    @OneToMany(mappedBy = "inventario",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ProductoInventario> productos;
 
     @Column(nullable = false)
     private boolean activo;

@@ -36,6 +36,6 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
-    @OneToMany(mappedBy = "usuario")
-    private List<UsuarioUbicacion> usuarioUbicacion;
+    // @OneToMany(mappedBy = "usuario")
+    // private List<UsuarioUbicacion> usuarioUbicacion;
 }

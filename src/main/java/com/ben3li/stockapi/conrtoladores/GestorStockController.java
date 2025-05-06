@@ -44,7 +44,7 @@ public class GestorStockController {
         HttpServletRequest request
     ){
     //    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones((UUID)request.getAttribute("userId"));
-    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones(UUID.fromString("348b7171-e6b6-4525-a893-a8f838613165"));
+    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones(UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
        return ResponseEntity.ok(ubicaciones);
     }
 

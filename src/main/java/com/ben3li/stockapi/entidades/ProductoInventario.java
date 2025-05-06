@@ -13,6 +13,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
+@Entity
+@Table(name = "producto_inventario")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,4 +36,7 @@ public class ProductoInventario {
 
     @Column(nullable = false)
     private int cantidad;
+
+    @Column(nullable = false)
+    private double precio;
 }

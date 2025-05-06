@@ -15,4 +15,5 @@ import com.ben3li.stockapi.entidades.UsuarioUbicacionId;
 public interface UsuarioUbicacionRepositorio extends JpaRepository<UsuarioUbicacion,UsuarioUbicacionId>{
     boolean existsByUsuarioIdAndUbicacionNombre(UUID usuarioId, String nombre);
     List<UsuarioUbicacion>findByUsuarioId(UUID usuarioId);
+    List<UsuarioUbicacion> findByUbicacionId(UUID ubicacionId);
 }

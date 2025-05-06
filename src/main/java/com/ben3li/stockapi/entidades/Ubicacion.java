@@ -3,6 +3,7 @@ package com.ben3li.stockapi.entidades;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,6 +34,9 @@ public class Ubicacion {
     @OneToMany(mappedBy = "ubicacion")
     private List<Inventario> inventarios;
 
-    @OneToMany(mappedBy = "ubicacion")
-    private List<UsuarioUbicacion> usuarioUbicacion;
+    @OneToMany(mappedBy = "ubicacion", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Producto> productos;
+
+    // @OneToMany(mappedBy = "ubicacion")
+    // private List<UsuarioUbicacion> usuarioUbicacion;
 }

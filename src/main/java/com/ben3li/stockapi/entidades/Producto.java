@@ -52,11 +52,15 @@ public class Producto {
     @Column(nullable = false)
     private int cantidad;
 
-    @ManyToOne
-    @JoinColumn(name = "inventario_id")
-    private Inventario inventario;
+    // @ManyToOne
+    // @JoinColumn(name = "inventario_id")
+    // private Inventario inventario;
 
-    // @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name="ubicacion_id", nullable = false)
+    private Ubicacion ubicacion;
+
+    // @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     // private List<ProductoInventario> productoInventarios;
     
 

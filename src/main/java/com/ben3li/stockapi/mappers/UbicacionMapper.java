@@ -11,6 +11,5 @@ import com.ben3li.stockapi.entidades.Ubicacion;
 public interface UbicacionMapper {
     Ubicacion fromDto(UbicacionDTO ubicacionDTO);
 
-    @Mapping(source = "usuarioUbicacion", target = "usuarios")
     UbicacionDTO toDto(Ubicacion ubicacion);
 }

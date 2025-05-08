@@ -2,16 +2,20 @@ package com.ben3li.stockapi.servicios.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-
+import com.ben3li.stockapi.dto.InsertarProductosDTO;
+import com.ben3li.stockapi.dto.InsertarProductosRespuestaDTO;
 import com.ben3li.stockapi.dto.InventarioDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
 import com.ben3li.stockapi.entidades.Inventario;
 import com.ben3li.stockapi.entidades.Producto;
 import com.ben3li.stockapi.entidades.ProductoInventario;
+import com.ben3li.stockapi.entidades.ProductoInventarioId;
 import com.ben3li.stockapi.entidades.Ubicacion;
 import com.ben3li.stockapi.entidades.Usuario;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion;
@@ -84,43 +88,59 @@ public class InventarioServiceImpl implements InventarioService{
 
     @Transactional
     @Override
-    public InventarioDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productosDTO,UUID userId) {
-        Inventario inventario = getInventario(inventarioId);
+    public InsertarProductosRespuestaDTO insertarProductos(UUID inventarioId, List<ProductoDTO> productosDTO,UUID userId) {
 
+        Inventario inventario = getInventario(inventarioId);
         UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, inventario.getUbicacion().getId()));
 
         if(usuarioUbicacion.getRol()!=Rol.JEFE && usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
             throw new AccesoDenegadoException("No tienes permisos para insertar productos.");
         }
        
-        List<Producto> productos=productosDTO.stream().map(productoMapper::fromDto).toList();
-        List<ProductoInventario> relaciones=new ArrayList<>();
-        
-        List<Producto> productoExsitentes= productoRepositorio.findByIdIn(productos.stream().map(Producto::getId).toList());
+        List<ProductoInventario> relaciones=new ArrayList<>();    
 
-        if(productos.size()!=productoExsitentes.size()){
-            //hay que enviar un mensaje avisando de que hay productos que no se hac insertado
-            //Y seguir con al insercion de los prdocutos que si se ahn encontrado
-            //Esta funcion deberia devolver un dto especial con el inventario y sus prodcutos que si se han insertado, una lista de productos 
-            //que no se han podido insertar por cualquier motivo y un mensaje de error avisando de ello
-        }
-        for (Producto producto : productos) {
-            Producto productoExsitente= productoRepositorio.findById(producto.getId()).orElse(null);
-            if(productoExsitente==null){
-                productoExsitente=productoRepositorio.save(producto);
-            }
+        List<Producto> productosRecibidos = productosDTO.stream().map(productoMapper::fromDto).toList();
+        List<UUID> idsRecibidos = productosRecibidos.stream().map(Producto::getId).toList();
 
+        List<Producto> productosExistentes= productoRepositorio.findByIdIn(idsRecibidos);
+        List<UUID> idsExistentes = productosExistentes.stream().map(Producto::getId).toList();
 
+       
+
+        List<ProductoDTO> productosNoEncontrados = productosDTO.stream()
+                                                                .filter(dto-> !idsExistentes.contains(dto.getId()))
+                                                                .toList();
+
+      
+        Map<UUID,Integer> productosCantidad = productosDTO.stream()
+                                                            .filter(dto-> dto.getId()!=null)
+                                                            .collect(Collectors.toMap(ProductoDTO::getId,ProductoDTO::getCantidad));
+        for (Producto producto : productosExistentes) {
+           
+            ProductoInventarioId id = new ProductoInventarioId(producto.getId(), inventarioId);
             ProductoInventario productoInventario = ProductoInventario.builder()
-                                                                    .producto(productoExsitente)
-                                                                    .inventario(inventario)
-                                                                    .cantidad(productoExsitente.getCantidad())
-                                                                    .build();
+                                                                .id(id)
+                                                                .producto(producto)
+                                                                .inventario(inventario)
+                                                                .cantidad(productosCantidad.get(producto.getId()))
+                                                                .build();
             relaciones.add(productoInventario);
-        }
+        } 
+        
         productoInventarioRepositorio.saveAll(relaciones);
+        inventario = inventarioRepositorio.findByIdWithProductos(inventarioId);
+        
+        InsertarProductosRespuestaDTO insertarProductosDTO = new InsertarProductosRespuestaDTO();
+        insertarProductosDTO.setProductosNoIsertados(productosNoEncontrados);
+        insertarProductosDTO.setInventarioActualizado(inventarioMapper.toDto(inventario));
 
-        return inventarioMapper.toDto(inventario);
+        if(productosNoEncontrados.size()>0){
+            insertarProductosDTO.setMensajeError("Hay productos que no han sido insertados. ");
+        }
+        else{
+            insertarProductosDTO.setMensajeError("Se han insertado todos los productos. ");
+        }
+        return insertarProductosDTO;
     }
 
 
@@ -158,7 +178,7 @@ public class InventarioServiceImpl implements InventarioService{
             throw new AccesoDenegadoException("No tienes permisos para eliminar productos de este inventario en esta ubicacion.");
         }
         
-        List<ProductoInventario> relaciones = productoInventarioRepositorio.findById_InventarioIdAndId_ProductoIdIn(productosID,inventarioId);
+        List<ProductoInventario> relaciones = productoInventarioRepositorio.findById_InventarioIdAndId_ProductoIdIn(inventarioId,productosID);
            
         if(relaciones.size()!=productosID.size()){
             throw new RecursoNoEncontradoException("Uno o más productos no se han encontrado");
@@ -179,9 +199,8 @@ public class InventarioServiceImpl implements InventarioService{
     }
     
     private Inventario getInventario(UUID inventarioId) {
-        Inventario inventario = inventarioRepositorio.findById(inventarioId)
+        return inventarioRepositorio.findById(inventarioId)
                                          .orElseThrow(()-> new RecursoNoEncontradoException("No se ha encontrado el inventario."));
-        return inventario;
     }
 
     private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {

@@ -25,4 +25,6 @@ public class ProductoDTO {
     private String unidad;
 
     private int cantidad;
+
+    private UbicacionDTO ubicacion;
 }

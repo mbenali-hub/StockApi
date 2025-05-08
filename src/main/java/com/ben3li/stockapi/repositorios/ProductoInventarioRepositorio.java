@@ -15,5 +15,5 @@ public interface ProductoInventarioRepositorio extends JpaRepository<ProductoInv
     void deleteById_InventarioId(UUID inventarioId);
     void deleteAllById_ProductoIdIn(List<UUID> productosId);
 
-    List<ProductoInventario> findById_InventarioIdAndId_ProductoIdIn(List<UUID> productoID,UUID inventarioId);
+    List<ProductoInventario> findById_InventarioIdAndId_ProductoIdIn(UUID inventarioId,List<UUID> productoID);
 }

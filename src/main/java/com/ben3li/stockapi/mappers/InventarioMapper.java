@@ -10,6 +10,6 @@ import com.ben3li.stockapi.entidades.ProductoInventario;
 
 @Mapper(componentModel = "spring",unmappedTargetPolicy=ReportingPolicy.IGNORE, uses=ProductoInventarioMapper.class)
 public interface InventarioMapper {
-    
+
     InventarioDTO toDto(Inventario inventario);
 }

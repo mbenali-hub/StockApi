@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import com.ben3li.stockapi.dto.ProductoCantidadUpdateDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
+import com.ben3li.stockapi.entidades.Producto;
 
 public interface ProductoService {
+    ProductoDTO crearProducto(UUID ubicacionId, ProductoDTO productoDTO, UUID userId);
     List<ProductoDTO> getProductosPorNombre(String nombre, UUID ubicacionId, UUID userId);
     List<ProductoDTO> getProductos(UUID ubicacionId, UUID userId);
     List<ProductoDTO> updateCantidadProducto(UUID ubicacionId,List<ProductoCantidadUpdateDTO> productos, UUID userId);

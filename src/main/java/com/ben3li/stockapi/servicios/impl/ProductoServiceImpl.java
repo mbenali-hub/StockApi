@@ -1,10 +1,8 @@
 package com.ben3li.stockapi.servicios.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ import com.ben3li.stockapi.excepciones.RecursoNoEncontradoException;
 import com.ben3li.stockapi.mappers.ProductoMapper;
 import com.ben3li.stockapi.mappers.UbicacionMapper;
 import com.ben3li.stockapi.repositorios.ProductoRepositorio;
-import com.ben3li.stockapi.repositorios.UsuarioUbicacionRepositorio;
+import com.ben3li.stockapi.servicios.BusquedaDeEntidadesService;
 import com.ben3li.stockapi.servicios.ProductoService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,13 +29,13 @@ import lombok.RequiredArgsConstructor;
 public class ProductoServiceImpl implements ProductoService{
 
     private final ProductoRepositorio productoRepositorio;
-    private final UsuarioUbicacionRepositorio usuarioUbicacionRepositorio;
+    private final BusquedaDeEntidadesService busquedaDeEntidadesService;
     private final ProductoMapper productoMapper;
     private final UbicacionMapper ubicacionMapper;
 
     @Override
     public ProductoDTO crearProducto(UUID ubicacionId, ProductoDTO productoDTO, UUID userId) {
-        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
+        UsuarioUbicacion usuarioUbicacion = busquedaDeEntidadesService.getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
 
         if(usuarioUbicacion.getRol()!=Rol.JEFE&& usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
             throw new AccesoDenegadoException("Solo el jefe y los administradores pueden crear productos");
@@ -50,7 +48,7 @@ public class ProductoServiceImpl implements ProductoService{
     
     @Override
     public List<ProductoDTO> getProductos(UUID ubicacionId, UUID userId) {
-        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
+        UsuarioUbicacion usuarioUbicacion = busquedaDeEntidadesService.getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
 
         if(usuarioUbicacion.getRol()!=Rol.JEFE&& usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
             throw new AccesoDenegadoException("Solo el jefe y los administradores pueden ver los productos para añadir a un inventario.");
@@ -63,7 +61,7 @@ public class ProductoServiceImpl implements ProductoService{
     @Transactional
     @Override
     public List<ProductoDTO> updateCantidadProducto(UUID ubicacionId, List<ProductoCantidadUpdateDTO> productos, UUID userId) {
-        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
+        UsuarioUbicacion usuarioUbicacion = busquedaDeEntidadesService.getUsuarioUbicacion(new UsuarioUbicacionId(userId, ubicacionId));
 
         if(usuarioUbicacion.getRol()!=Rol.JEFE&& usuarioUbicacion.getRol()!=Rol.ADMINISTRADOR){
             throw new AccesoDenegadoException("Solo el jefe y los administradores pueden actualizar los productos.");
@@ -91,21 +89,11 @@ public class ProductoServiceImpl implements ProductoService{
     
     @Override
     public List<ProductoDTO> getProductosPorNombre(String nombre, UUID ubicacionId, UUID userId) {
-        verificarUsuarioEnUbicacion(userId, ubicacionId);
+        busquedaDeEntidadesService.verificarUsuarioEnUbicacion(userId, ubicacionId);
         List<Producto> productos = productoRepositorio.findByNombreAndUbicacion_Id(nombre,ubicacionId);
 
         if(productos.isEmpty()) throw new RecursoNoEncontradoException("No existe ningún producto con ese nombre en esta ubicación.");
         return productos.stream().map(productoMapper::toDto).toList();
-    }
-    
-    private void verificarUsuarioEnUbicacion(UUID userId, UUID ubicacionId) {
-        usuarioUbicacionRepositorio.findById(new UsuarioUbicacionId(userId, ubicacionId))
-        .orElseThrow(() -> new RecursoNoEncontradoException("El usuario no existe en la ubicación. Por lo que no puedes obtener acceso a sus inventarios."));
-    }
-    
-    private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
-        return usuarioUbicacionRepositorio.findById(id)
-                                            .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe en la ubicacion" ));
     }
 
 }

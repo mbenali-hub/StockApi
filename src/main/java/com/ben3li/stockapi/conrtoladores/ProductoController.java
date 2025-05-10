@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ben3li.stockapi.dto.ProductoCantidadUpdateDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
-import com.ben3li.stockapi.servicios.impl.ProductoServiceImpl;
+import com.ben3li.stockapi.servicios.ProductoService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/stockapi/ubicacion/{ubicacionId}/productos")
 public class ProductoController {
 
-    private final ProductoServiceImpl productoServiceImpl;
+    private final ProductoService productoService;
 
     @PostMapping()
     public ResponseEntity<ProductoDTO> crearProducto(
@@ -33,8 +33,8 @@ public class ProductoController {
         @RequestBody ProductoDTO productoDTO,
         HttpServletRequest request
     ){
-        //productoDTO = productoServiceImpl.crearProdcuto(ubicacionId, productoDTO, (UUID) request.getAttribute("userId"));
-        productoDTO = productoServiceImpl.crearProducto(ubicacionId, productoDTO, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        productoDTO = productoService.crearProducto(ubicacionId, productoDTO, (UUID) request.getAttribute("userId"));
+        //productoDTO = productoService.crearProducto(ubicacionId, productoDTO, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
         return new ResponseEntity<>(productoDTO,HttpStatus.CREATED);
     }
     
@@ -43,8 +43,8 @@ public class ProductoController {
         @PathVariable UUID ubicacionId,
         HttpServletRequest request
     ){
-        //List<ProductoDTO> productos = productoServiceImpl.getProductos(ubicacionId,(UUID) request.getAttribute("userId"));
-        List<ProductoDTO> productos = productoServiceImpl.getProductos(ubicacionId,UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        List<ProductoDTO> productos = productoService.getProductos(ubicacionId,(UUID) request.getAttribute("userId"));
+        //List<ProductoDTO> productos = productoService.getProductos(ubicacionId,UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
         return new ResponseEntity<>(productos,HttpStatus.OK);
     }
 
@@ -55,8 +55,8 @@ public class ProductoController {
         @PathVariable String nombre,
         HttpServletRequest request
     ){
-        //List<ProductoDTO> productos = productoServiceImpl.getProductosPorNombre(nombre, ubicacionId, (UUID)request.getAttribute("userId"));
-        List<ProductoDTO> productos = productoServiceImpl.getProductosPorNombre(nombre, ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        List<ProductoDTO> productos = productoService.getProductosPorNombre(nombre, ubicacionId, (UUID)request.getAttribute("userId"));
+        //List<ProductoDTO> productos = productoService.getProductosPorNombre(nombre, ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
         return new ResponseEntity<>(productos,HttpStatus.OK);
     }
 
@@ -67,8 +67,7 @@ public class ProductoController {
         HttpServletRequest request
     )
     {
-        List<ProductoDTO> productosActualizados = productoServiceImpl.updateCantidadProducto(ubicacionId, productos, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
-        //(UUID)request.getAttribute("userId"));
+        List<ProductoDTO> productosActualizados = productoService.updateCantidadProducto(ubicacionId, productos, (UUID)request.getAttribute("userId"));
         return new ResponseEntity<>(productosActualizados,HttpStatus.OK);
     }
 

@@ -1,18 +1,11 @@
 package com.ben3li.stockapi.servicios.impl;
 
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.ben3li.stockapi.dto.UbicacionDTO;
 import com.ben3li.stockapi.dto.UsuarioUbicacionDTO;
 import com.ben3li.stockapi.entidades.Ubicacion;
@@ -21,13 +14,12 @@ import com.ben3li.stockapi.entidades.UsuarioUbicacion;
 import com.ben3li.stockapi.entidades.UsuarioUbicacionId;
 import com.ben3li.stockapi.excepciones.AccesoDenegadoException;
 import com.ben3li.stockapi.excepciones.ConflictosDeDatosException;
-import com.ben3li.stockapi.excepciones.RecursoNoEncontradoException;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion.Rol;
 import com.ben3li.stockapi.mappers.UbicacionMapper;
 import com.ben3li.stockapi.mappers.UsuarioUbicacionMapper;
 import com.ben3li.stockapi.repositorios.UbicacionRepositorio;
-import com.ben3li.stockapi.repositorios.UsuarioRepositorio;
 import com.ben3li.stockapi.repositorios.UsuarioUbicacionRepositorio;
+import com.ben3li.stockapi.servicios.BusquedaDeEntidadesService;
 import com.ben3li.stockapi.servicios.UbicacionService;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +30,8 @@ public class UbicacionServiceImpl implements UbicacionService{
 
 
     private final UbicacionRepositorio ubicacionRepositorio;
-    private final UsuarioRepositorio usuarioRepositorio;
     private final UsuarioUbicacionRepositorio usuarioUbicacionRepositorio;
+    private final BusquedaDeEntidadesService busquedaDeEntidadesService;
     private final UbicacionMapper ubicacionMapper;
     private final UsuarioUbicacionMapper usuarioUbicacionMapper;
 
@@ -49,9 +41,10 @@ public class UbicacionServiceImpl implements UbicacionService{
             throw new ConflictosDeDatosException("Ya existe una ubicacion con ese nombre");
         }
 
-        Usuario usuario=usuarioRepositorio.findById(userId).orElseThrow(()-> new RecursoNoEncontradoException("El usuario no existe."));
+        System.out.println("Userid : "+userId);
+        Usuario usuario = busquedaDeEntidadesService.getUsuario(userId);
         Ubicacion ubicacion=ubicacionMapper.fromDto(ubicacionDTO);
-        ubicacion.setId(null);
+        //ubicacion.setId(null);
 
         Ubicacion ubicacionGuardada=ubicacionRepositorio.save(ubicacion);
 
@@ -73,8 +66,8 @@ public class UbicacionServiceImpl implements UbicacionService{
     @Override
     public UbicacionDTO anhadirUsuarioAUbicacion(UUID ubicacionId, UUID usuarioId, Rol rol) {
         //Ubicacion ubicacionActualizada=null;
-        Ubicacion ubicacion= getUbicacion(ubicacionId);
-        Usuario usuario= getUsuario(usuarioId);
+        Ubicacion ubicacion = busquedaDeEntidadesService.getUbicacion(ubicacionId);
+        Usuario usuario = busquedaDeEntidadesService.getUsuario(usuarioId);
         
         UsuarioUbicacionId id= new UsuarioUbicacionId(usuarioId, ubicacionId);
         if(usuarioUbicacionRepositorio.existsById(id)){
@@ -99,8 +92,8 @@ public class UbicacionServiceImpl implements UbicacionService{
     @Transactional
     @Override
     public UbicacionDTO quitarUsuarioDeUbicacion(UUID ubicacionId, UUID usuarioId) {
-        Ubicacion ubicacion= getUbicacion(ubicacionId);
-        UsuarioUbicacion usuarioUbicacion=getUsuarioUbicacion(new UsuarioUbicacionId(usuarioId, ubicacionId));
+        Ubicacion ubicacion = busquedaDeEntidadesService.getUbicacion(ubicacionId);
+        UsuarioUbicacion usuarioUbicacion = busquedaDeEntidadesService.getUsuarioUbicacion(new UsuarioUbicacionId(usuarioId, ubicacionId));
         
         usuarioUbicacionRepositorio.delete(usuarioUbicacion);
 
@@ -114,8 +107,8 @@ public class UbicacionServiceImpl implements UbicacionService{
     @Override
     public void eliminarUbicacion(UUID ubicacionId, UUID usuarioId) {
 
-        Ubicacion ubicacion=getUbicacion(ubicacionId);
-        UsuarioUbicacion usuarioUbicacion= getUsuarioUbicacion(new UsuarioUbicacionId(usuarioId, ubicacionId));
+        Ubicacion ubicacion = busquedaDeEntidadesService.getUbicacion(ubicacionId);
+        UsuarioUbicacion usuarioUbicacion = busquedaDeEntidadesService.getUsuarioUbicacion(new UsuarioUbicacionId(usuarioId, ubicacionId));
 
         if(usuarioUbicacion.getRol()!=Rol.JEFE){
             throw new AccesoDenegadoException("No tienes permisos para eliminar esta ubicacion");
@@ -147,21 +140,6 @@ public class UbicacionServiceImpl implements UbicacionService{
         }
         ).toList();
         return ubicacionesDTO;
-    }
-
-    private Usuario getUsuario(UUID usuarioId) {
-        return usuarioRepositorio.findById(usuarioId)
-                                    .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe" ));
-    }
-
-    private Ubicacion getUbicacion(UUID ubicacionId) {
-        return ubicacionRepositorio.findById(ubicacionId)
-                                    .orElseThrow(()->new RecursoNoEncontradoException("La ubicacion no existe" ));
-    }
-
-    private UsuarioUbicacion getUsuarioUbicacion(UsuarioUbicacionId id) {
-        return usuarioUbicacionRepositorio.findById(id)
-                                            .orElseThrow(()->new RecursoNoEncontradoException("El usuario no existe en la ubicacion" ));
     }
 
     private List<UsuarioUbicacionDTO> obtenerUsuariosMapeadosDeUnaUbicacion(Ubicacion ubicacion){

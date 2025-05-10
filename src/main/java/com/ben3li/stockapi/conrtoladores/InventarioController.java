@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,11 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ben3li.stockapi.dto.CrearInventarioDTO;
-import com.ben3li.stockapi.dto.InsertarProductosDTO;
 import com.ben3li.stockapi.dto.InsertarProductosRespuestaDTO;
 import com.ben3li.stockapi.dto.InventarioDTO;
 import com.ben3li.stockapi.dto.ProductoDTO;
-import com.ben3li.stockapi.servicios.impl.InventarioServiceImpl;
+import com.ben3li.stockapi.servicios.InventarioService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/stockapi/inventarios")
 public class InventarioController {
 
-    private final InventarioServiceImpl inventarioServiceImpl;
+    private final InventarioService inventarioService;
 
 
     @GetMapping("/{inventarioId}")
@@ -38,9 +36,9 @@ public class InventarioController {
         @PathVariable UUID inventarioId,
          HttpServletRequest request)
     {
-        InventarioDTO inventarioDTO = inventarioServiceImpl.obtenerInventario(inventarioId,
-                                                                             UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
-                                                                             //(UUID) request.getAttribute("userId"));
+        InventarioDTO inventarioDTO = inventarioService.obtenerInventario(inventarioId,
+                                                                            (UUID) request.getAttribute("userId"));
+                                                                             //UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
         return new ResponseEntity<>(inventarioDTO,HttpStatus.OK);
     }
     
@@ -50,12 +48,12 @@ public class InventarioController {
         HttpServletRequest request)
     {
 
-        InventarioDTO inventarioDTO = inventarioServiceImpl.crearInventario(
+        InventarioDTO inventarioDTO = inventarioService.crearInventario(
                                                                             crearInventarioDTO.getUbicacionId(), 
                                                                             crearInventarioDTO.getInventarioDTO(), 
-                                                                            UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce")
+                                                                            (UUID)request.getAttribute("userId")
+                                                                            //UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce")
                                                                             //UUID.fromString("348b7171-e6b6-4525-a893-a8f838613165")
-                                                                            //(UUID)request.getAttribute("userId")
         ); 
         
         return new ResponseEntity<InventarioDTO>(inventarioDTO,HttpStatus.CREATED);                                                             
@@ -67,9 +65,7 @@ public class InventarioController {
         @RequestBody List<ProductoDTO> productos,
         HttpServletRequest request)
     { 
-            
-        //InventarioDTO inventarioDTO= inventarioServiceImpl.insertarProductos(inventarioId, insertarProductosDTO.getProductos(), (UUID)request.getAttribute("userId"));
-        InsertarProductosRespuestaDTO respuestaDTO= inventarioServiceImpl.insertarProductos(inventarioId, productos, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        InsertarProductosRespuestaDTO respuestaDTO = inventarioService.insertarProductos(inventarioId, productos, (UUID)request.getAttribute("userId"));
         return new ResponseEntity<>(respuestaDTO,HttpStatus.CREATED);
     }
 
@@ -80,8 +76,7 @@ public class InventarioController {
         HttpServletRequest request
     )
     {
-        inventarioServiceImpl.eliminarProductosDelInventario(inventarioId, productos, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
-        //(UUID)request.getAttribute("userId"));
+        inventarioService.eliminarProductosDelInventario(inventarioId, productos, (UUID)request.getAttribute("userId"));
         return ResponseEntity.noContent().build();
     }
 
@@ -90,8 +85,8 @@ public class InventarioController {
         @PathVariable UUID inventarioId,
         HttpServletRequest request)
     {
-        // inventarioServiceImpl.eliminarInventario(inventarioId, (UUID)request.getAttribute("userId"));
-        inventarioServiceImpl.eliminarInventario(inventarioId, UUID.fromString("b174b122-1175-42a0-8093-d6bd7cada15e"));
+        inventarioService.eliminarInventario(inventarioId, (UUID)request.getAttribute("userId"));
+        //inventarioService.eliminarInventario(inventarioId, UUID.fromString("b174b122-1175-42a0-8093-d6bd7cada15e"));
         return ResponseEntity.noContent().build();
     }
 }

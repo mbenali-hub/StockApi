@@ -3,9 +3,6 @@ package com.ben3li.stockapi.conrtoladores;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,14 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ben3li.stockapi.dto.UbicacionDTO;
 import com.ben3li.stockapi.entidades.Ubicacion;
 import com.ben3li.stockapi.entidades.UsuarioUbicacion.Rol;
 import com.ben3li.stockapi.mappers.UbicacionMapper;
-import com.ben3li.stockapi.servicios.impl.UbicacionServiceImpl;
+import com.ben3li.stockapi.servicios.UbicacionService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,12 +26,12 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/stockapi")
 @RequiredArgsConstructor
 public class GestorStockController {
-    private final UbicacionServiceImpl ubicicacionServiceImpl;
+    private final UbicacionService ubicacionService;
     private final UbicacionMapper ubicacionMapper;
 
     @PostMapping("/ubicaciones")
     public UbicacionDTO crearUbicacion(@RequestBody UbicacionDTO ubicacionDTO, HttpServletRequest request) {
-        Ubicacion ubicacion = ubicicacionServiceImpl.crearUbicacion(ubicacionDTO, (UUID) request.getAttribute("userId"));
+        Ubicacion ubicacion = ubicacionService.crearUbicacion(ubicacionDTO, (UUID) request.getAttribute("userId"));
         return ubicacionMapper.toDto(ubicacion);
     }
     
@@ -43,8 +39,8 @@ public class GestorStockController {
     public ResponseEntity<List<UbicacionDTO>> listarUbicaciones(
         HttpServletRequest request
     ){
-    //    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones((UUID)request.getAttribute("userId"));
-    List<UbicacionDTO> ubicaciones= ubicicacionServiceImpl.listarUbicaciones(UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        List<UbicacionDTO> ubicaciones= ubicacionService.listarUbicaciones((UUID)request.getAttribute("userId"));
+        //List<UbicacionDTO> ubicaciones= ubicacionService.listarUbicaciones(UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
        return ResponseEntity.ok(ubicaciones);
     }
 
@@ -54,7 +50,7 @@ public class GestorStockController {
         @PathVariable UUID usuarioId,
         @PathVariable Rol rol
     ) {
-        return ubicicacionServiceImpl.anhadirUsuarioAUbicacion(ubicacionId, usuarioId, rol);
+        return ubicacionService.anhadirUsuarioAUbicacion(ubicacionId, usuarioId, rol);
     }
 
     @PutMapping("/ubicaciones/{ubicacionId}/usuarios/{usuarioId}")
@@ -62,13 +58,12 @@ public class GestorStockController {
         @PathVariable UUID ubicacionId,
         @PathVariable UUID usuarioId
     ) {
-        return ubicicacionServiceImpl.quitarUsuarioDeUbicacion(ubicacionId, usuarioId);
+        return ubicacionService.quitarUsuarioDeUbicacion(ubicacionId, usuarioId);
     }
 
     @DeleteMapping("/ubicaciones/{ubicacionId}")
     public ResponseEntity<Void> eliminarUbicacion(@PathVariable UUID ubicacionId, HttpServletRequest request) {
-        // boolean eliminado = ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, (UUID) request.getAttribute("userId"));
-        ubicicacionServiceImpl.eliminarUbicacion(ubicacionId, UUID.fromString("f411d521-61fc-4b74-8819-da56c3c157ce"));
+        ubicacionService.eliminarUbicacion(ubicacionId, (UUID) request.getAttribute("userId"));
         return ResponseEntity.noContent().build();
     }
 

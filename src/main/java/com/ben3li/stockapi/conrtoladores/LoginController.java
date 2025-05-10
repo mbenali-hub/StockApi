@@ -11,12 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ben3li.stockapi.dto.LoginRegistroRequest;
 import com.ben3li.stockapi.dto.LoginResponse;
 import com.ben3li.stockapi.dto.UsuarioDTO;
-import com.ben3li.stockapi.entidades.Usuario;
-import com.ben3li.stockapi.mappers.UsuarioMapper;
-import com.ben3li.stockapi.repositorios.UsuarioRepositorio;
+import com.ben3li.stockapi.servicios.AuthenticationService;
 import com.ben3li.stockapi.servicios.UsuarioService;
-import com.ben3li.stockapi.servicios.impl.AuthenticationServiceImpl;
-import com.ben3li.stockapi.servicios.impl.UsuarioServiceImpl;
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,15 +22,14 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/stockapi")
 public class LoginController {
     
-    private final AuthenticationServiceImpl authenticationServiceImpl;
-    private final UsuarioServiceImpl usuarioServiceImpl;
-    private final UsuarioMapper usuarioMapper;
+    private final AuthenticationService authenticationService;
+    private final UsuarioService usuarioService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRegistroRequest loginRequest){
-        UserDetails userdetails=authenticationServiceImpl.autenticar(loginRequest.getEmail(), loginRequest.getPassword());
+        UserDetails userdetails=authenticationService.autenticar(loginRequest.getEmail(), loginRequest.getPassword());
 
-        String token= authenticationServiceImpl.generarToken(userdetails);
+        String token= authenticationService.generarToken(userdetails);
 
         LoginResponse loginResponse= LoginResponse.builder()
                                                     .token(token)
@@ -44,7 +40,7 @@ public class LoginController {
 
     @PostMapping("/registro")
     public ResponseEntity<UsuarioDTO> registro(@RequestBody LoginRegistroRequest loginRegistroRequest){
-        UsuarioDTO usuarioCreadoDTO= usuarioServiceImpl.guardarUsuario(loginRegistroRequest);
+        UsuarioDTO usuarioCreadoDTO= usuarioService.guardarUsuario(loginRegistroRequest);
         return new ResponseEntity<>(usuarioCreadoDTO,HttpStatus.CREATED);
     }
 }

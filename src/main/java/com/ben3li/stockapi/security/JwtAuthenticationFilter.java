@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.ben3li.stockapi.servicios.AuthenticationService;
 import com.ben3li.stockapi.servicios.impl.AuthenticationServiceImpl;
 
 import jakarta.servlet.FilterChain;
@@ -18,26 +19,26 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final AuthenticationServiceImpl authenticationServiceImpl;
+    private final AuthenticationService authenticationService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)throws ServletException, IOException {
         
-        // String token= extraerToken(request);
-        // try {
-        //     if(token!=null){
-        //         UserDetails userDetails= authenticationServiceImpl.validarToken(token);
+        String token= extraerToken(request);
+        try {
+            if(token!=null){
+                UserDetails userDetails= authenticationService.validarToken(token);
 
-        //         SecurityContextHolder.getContext().setAuthentication(
-        //             new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities())
-        //         );
+                SecurityContextHolder.getContext().setAuthentication(
+                    new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities())
+                );
 
-        //         if(userDetails instanceof StockApiUserDetails){
-        //             request.setAttribute("userId", ((StockApiUserDetails)userDetails).getId());
-        //         }
-        //     }
-        // } catch (Exception e) {            
-        //     System.out.println("Error: No hay token.");
-        // }
+                if(userDetails instanceof StockApiUserDetails){
+                    request.setAttribute("userId", ((StockApiUserDetails)userDetails).getId());
+                }
+            }
+        } catch (Exception e) {            
+            System.out.println("Error: No hay token.");
+        }
         
         doFilter(request, response, filterChain);
     }

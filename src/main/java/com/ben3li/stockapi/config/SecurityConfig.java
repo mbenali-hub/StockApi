@@ -29,17 +29,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception{
         http.authorizeHttpRequests(auth-> auth 
-            // .requestMatchers(HttpMethod.POST, "/stockapi/login").permitAll()
-            // .requestMatchers(HttpMethod.POST, "/stockapi/registro").permitAll()
-            // .requestMatchers(HttpMethod.POST,"/stockapi/crearubicacion").permitAll()
-            // .anyRequest().authenticated()
-            .anyRequest().permitAll()
+            .requestMatchers(HttpMethod.POST, "/stockapi/login").permitAll()
+            .requestMatchers(HttpMethod.POST, "/stockapi/registro").permitAll()
+            .anyRequest().authenticated()
         )
         .csrf(csrf->csrf.disable())
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
-        //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        )
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
